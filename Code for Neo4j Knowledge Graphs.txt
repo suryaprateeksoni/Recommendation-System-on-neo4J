@@ -1,0 +1,57 @@
+# Cleaning the graph 
+MATCH (n)
+DETACH DELETE n
+
+# Calling the procedure to create a Graph
+call n10s.graphconfig.init()
+
+# Loading the first Excel file. (Keep the excel file in your neo4j import folder)
+LOAD CSV WITH HEADERS FROM "file:///food.csv" AS row
+CREATE(n:Food5)
+SET n = row,
+n.fdc_id = toInteger(row.fdc_id)
+
+# Checking the resulting graph after previous step
+match(n) return n 
+
+# Loading the Second Excel file. (Keep the excel file in your neo4j import folder)
+LOAD CSV WITH HEADERS FROM "file:///branded_food.csv" AS row
+CREATE (n:Category5)
+SET n = row,
+n.fdc_id = toInteger(row.fdc_id), n.gtin_upc = toInteger(row.gtin_upc), n.serving_size = toInteger(row.serving_size)
+
+# Checking the resulting graph after previous step
+match(n) return n 
+
+# Loading the third Excel file. (Keep the excel file in your neo4j import folder)
+LOAD CSV WITH HEADERS FROM "file:///food_nutrient.csv" AS row
+CREATE (n:Nutrition5)
+SET n = row,
+n.id = toInteger(row.id), n.fdc_id = toInteger(row.fdc_id), n.nutrient_id = toInteger(row.nutrient_id), n.derivation_id = toInteger(row.derivation_id)
+
+# Checking the resulting graph after previous step
+match(n) return n 
+
+# Creating indexes
+CREATE INDEX ON :Food5(FoodIndex5)
+CREATE INDEX ON :Category5(CategoryIndex5)
+CREATE INDEX ON :Nutrition5(NutritionIndex5)
+
+# Checking the resulting graph after previous step
+match(n) return n 
+
+# Creating the first relationship between "Food" and "Category"
+MATCH (p:Food5),(c:Category5)
+WHERE p.fdc_id = c.fdc_id
+CREATE (p)-[:Is Of Category]->(c)
+
+# Checking the resulting graph after previous step
+match(n) return n 
+
+# Creating the second relationship between "Food" and "Nutrients"
+MATCH (p:Food5),(c:Nutrition5)
+WHERE p.fdc_id = c.fdc_id
+CREATE (p)-[:Contains]->(c)
+
+# Checking the resulting graph after previous step
+match(n) return n 
